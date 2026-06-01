@@ -76,7 +76,8 @@ class StorageService {
           blobName: blobPath,
           expiresOn,
           permissions: BlobSASPermissions.parse("r"),
-          protocol: SASProtocol.HttpsAndHttp
+          protocol: SASProtocol.Https,
+          version: "2023-11-03"
         },
         this.sharedCred
       ).toString();
@@ -94,7 +95,8 @@ class StorageService {
         permissions: BlobSASPermissions.parse("r"),
         startsOn: new Date(Date.now() - 60 * 1000),
         expiresOn: new Date(Date.now() + expiresMinutes * 60 * 1000),
-        protocol: SASProtocol.Https
+        protocol: SASProtocol.Https,
+        version: "2023-11-03"
       },
       delegation,
       env.azure.accountName
