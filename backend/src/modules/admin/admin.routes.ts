@@ -52,6 +52,12 @@ router.patch("/claims/:id/status", async (req, res) => {
   const adminComment = String(req.body.adminComment || "");
   if (!["APPROVED", "REJECTED", "PENDING"].includes(status)) return res.status(400).json({ message: "Invalid status" });
   const db = await getDb();
+  const current = await db.request().input("id", id).query("SELECT Id, Status FROM Claims WHERE Id=@id");
+  if (!current.recordset[0]) return res.status(404).json({ message: "Claim not found" });
+  if (current.recordset[0].Status !== "PENDING") {
+    return res.status(409).json({ message: "Claim is closed and cannot be changed" });
+  }
+
   await db
     .request()
     .input("id", id)

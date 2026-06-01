@@ -22,13 +22,19 @@ function Landing() {
   return (
     <div className="landing">
       <header className="hero">
+        <p className="eyebrow">Enterprise Blob Training Project</p>
         <h1>Insurance Claims Platform</h1>
-        <p>Secure claims workflow with Azure Blob document storage, private access, and role-based operations.</p>
+        <p>Secure claims workflow with Azure Blob document storage, private access, role-based approvals, and auditable status transitions.</p>
         <div className="hero-actions">
           <Link to="/login" className="btn">Login</Link>
           <Link to="/signup" className="btn ghost">Create Account</Link>
         </div>
       </header>
+      <section className="landing-grid">
+        <article className="landing-card"><h3>Secure Uploads</h3><p>Documents are uploaded with metadata tracking in SQL and object storage in Blob.</p></article>
+        <article className="landing-card"><h3>Role Control</h3><p>Admins review all claims, users see only their own claim history and outcomes.</p></article>
+        <article className="landing-card"><h3>Closed Decisions</h3><p>Approved or rejected claims become immutable for safer and clearer operations.</p></article>
+      </section>
     </div>
   );
 }
@@ -147,6 +153,7 @@ function AdminClaims() {
     await load();
   }
   return <div className="card"><h2>All Claims</h2><div className="table">{claims.map((c) => <div className="tr-col" key={c.Id}><div className="tr"><span>#{c.Id} {c.UserName}</span><span className={`badge ${c.Status}`}>{c.Status}</span></div><small>{c.PolicyNumber} | {c.ClaimType}</small><input placeholder="Admin comment" value={comments[c.Id] || ""} onChange={(e) => setComments((x) => ({ ...x, [c.Id]: e.target.value }))} /><div className="actions"><Link className="btn small ghost" to={`/app/claims/${c.Id}`}>Open</Link><button className="btn small" onClick={() => update(c.Id, "APPROVED")}>Approve</button><button className="btn small danger" onClick={() => update(c.Id, "REJECTED")}>Reject</button></div></div>)}</div></div>;
+  return <div className="card"><h2>All Claims</h2><div className="table">{claims.map((c) => { const closed = c.Status !== "PENDING"; return <div className="tr-col" key={c.Id}><div className="tr"><span>#{c.Id} {c.UserName}</span><span className={`badge ${c.Status}`}>{c.Status}</span></div><small>{c.PolicyNumber} | {c.ClaimType}</small><input placeholder="Admin comment" disabled={closed} value={comments[c.Id] || ""} onChange={(e) => setComments((x) => ({ ...x, [c.Id]: e.target.value }))} /><div className="actions"><Link className="btn small ghost" to={`/app/claims/${c.Id}`}>Open</Link><button className="btn small" disabled={closed} onClick={() => update(c.Id, "APPROVED")}>Approve</button><button className="btn small danger" disabled={closed} onClick={() => update(c.Id, "REJECTED")}>Reject</button></div></div>; })}</div></div>;
 }
 
 function AdminUsers() {
