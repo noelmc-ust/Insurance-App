@@ -134,7 +134,14 @@ function ClaimDetails() {
   const [data, setData] = useState<any>(null);
   useEffect(() => { api(`/api/claims/${id}`).then(setData); }, [id]);
   async function openDoc(docId: number) {
-    window.open(`/api/documents/${docId}/content`, "_blank");
+    const token = getToken();
+    const res = await fetch(`/api/documents/${docId}/content`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error(`Failed to open document (${res.status})`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
   }
   if (!data) return <div className="card">Loading...</div>;
   return <div className="card"><h2>Claim #{data.claim.Id}</h2><p>Status: <span className={`badge ${data.claim.Status}`}>{data.claim.Status}</span></p><p>Admin Comment: {data.claim.AdminComment || "-"}</p><h3>Documents</h3><div className="table">{data.documents.map((d: any) => <div className="tr" key={d.Id}><span>{d.FileName}</span><button className="btn small" onClick={() => openDoc(d.Id)}>Open</button></div>)}</div></div>;
