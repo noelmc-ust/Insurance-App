@@ -64,10 +64,39 @@ function ClaimCreate() { const nav = useNavigate(); async function submit(e: For
 function ClaimDetails() {
   const { id } = useParams();
   const [data, setData] = useState<any>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewName, setPreviewName] = useState<string>("");
   useEffect(() => { api(`/api/claims/${id}`).then(setData); }, [id]);
-  async function openDoc(docId:number){const res=await fetch(`/api/documents/${docId}/content`,{headers:{Authorization:`Bearer ${getToken()}`}}); const blob=await res.blob(); window.open(URL.createObjectURL(blob),"_blank");}
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
+  async function openDoc(docId:number, fileName:string){
+    const res=await fetch(`/api/documents/${docId}/content`,{headers:{Authorization:`Bearer ${getToken()}`}});
+    const blob=await res.blob();
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(blob));
+    setPreviewName(fileName);
+  }
+  function closePreview() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPreviewName("");
+  }
   if (!data) return <Card><CardContent className="space-y-2 pt-5">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-10 animate-pulse rounded-md bg-slate-800/70" />)}</CardContent></Card>;
-  return <Card><CardHeader><CardTitle>Claim #{data.claim.Id}</CardTitle></CardHeader><CardContent><p className="mb-2">Status: <Badge variant={statusVariant(data.claim.Status) as any}>{data.claim.Status}</Badge></p><p className="mb-4 text-slate-300">Admin Comment: {data.claim.AdminComment || "-"}</p><div className="space-y-2">{data.documents.length === 0 ? <div className="rounded-md border border-dashed border-slate-700 p-6 text-center text-slate-400">No documents uploaded.</div> : data.documents.map((d:any)=><div key={d.Id} className="flex items-center justify-between rounded-md border border-slate-700 bg-slate-900/50 p-3 transition hover:border-sky-600/40"><span>{d.FileName}</span><Button size="sm" variant="secondary" onClick={()=>openDoc(d.Id)}><FileText size={14}/>Open</Button></div>)}</div></CardContent></Card>;
+  return <>
+    <Card><CardHeader><CardTitle>Claim #{data.claim.Id}</CardTitle></CardHeader><CardContent><p className="mb-2">Status: <Badge variant={statusVariant(data.claim.Status) as any}>{data.claim.Status}</Badge></p><p className="mb-4 text-slate-300">Admin Comment: {data.claim.AdminComment || "-"}</p><div className="space-y-2">{data.documents.length === 0 ? <div className="rounded-md border border-dashed border-slate-700 p-6 text-center text-slate-400">No documents uploaded.</div> : data.documents.map((d:any)=><div key={d.Id} className="flex items-center justify-between rounded-md border border-slate-700 bg-slate-900/50 p-3 transition hover:border-sky-600/40"><span>{d.FileName}</span><Button size="sm" variant="secondary" onClick={()=>openDoc(d.Id, d.FileName)}><FileText size={14}/>Open</Button></div>)}</div></CardContent></Card>
+    {previewUrl && (
+      <div className="fixed inset-0 z-50 bg-black/80 p-4">
+        <div className="mx-auto flex h-full max-w-6xl flex-col rounded-xl border border-slate-700 bg-slate-950">
+          <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+            <p className="truncate text-sm text-slate-200">{previewName}</p>
+            <Button size="sm" variant="ghost" onClick={closePreview}>Close</Button>
+          </div>
+          <div className="flex-1 p-2">
+            <iframe title={previewName} src={previewUrl} className="h-full w-full rounded-md bg-white" />
+          </div>
+        </div>
+      </div>
+    )}
+  </>;
 }
 
 function AdminDashboard() { const [stats, setStats] = useState<any>(null); useEffect(() => { api("/api/admin/stats").then(setStats); }, []); if (!stats) return <div className="grid gap-3 md:grid-cols-5">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-24 animate-pulse rounded-xl bg-slate-800/70" />)}</div>; return <div className="grid gap-3 md:grid-cols-5">{Object.entries(stats).map(([k,v])=><Card key={k}><CardContent className="pt-5"><p className="text-xs uppercase tracking-wide text-slate-400">{k}</p><p className="mt-2 text-2xl font-bold">{String(v)}</p></CardContent></Card>)}</div>; }
