@@ -105,6 +105,12 @@ class StorageService {
     ).toString();
     return `${blobClient.url}?${sas}`;
   }
+
+  async download(blobPath: string) {
+    const container = this.client.getContainerClient(env.azure.container);
+    const blobClient = container.getBlobClient(blobPath);
+    return blobClient.download();
+  }
 }
 
 export const storageService = new StorageService();
