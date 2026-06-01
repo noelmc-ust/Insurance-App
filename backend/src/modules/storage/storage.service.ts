@@ -69,15 +69,17 @@ class StorageService {
     const blobClient = container.getBlobClient(blobPath);
 
     if (this.sharedCred) {
+      const startsOn = new Date(Date.now() - 5 * 60 * 1000);
       const expiresOn = new Date(Date.now() + expiresMinutes * 60 * 1000);
       const sas = generateBlobSASQueryParameters(
         {
           containerName: env.azure.container,
           blobName: blobPath,
+          startsOn,
           expiresOn,
           permissions: BlobSASPermissions.parse("r"),
           protocol: SASProtocol.Https,
-          version: "2023-11-03"
+          version: "2020-08-04"
         },
         this.sharedCred
       ).toString();
@@ -93,10 +95,10 @@ class StorageService {
         containerName: env.azure.container,
         blobName: blobPath,
         permissions: BlobSASPermissions.parse("r"),
-        startsOn: new Date(Date.now() - 60 * 1000),
+        startsOn: new Date(Date.now() - 5 * 60 * 1000),
         expiresOn: new Date(Date.now() + expiresMinutes * 60 * 1000),
         protocol: SASProtocol.Https,
-        version: "2023-11-03"
+        version: "2020-08-04"
       },
       delegation,
       env.azure.accountName
