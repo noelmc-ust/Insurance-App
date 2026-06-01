@@ -39,7 +39,6 @@ function Signup() {
   return <div className="grid min-h-screen place-items-center bg-slate-950 p-4"><Card className="w-full max-w-md"><CardHeader><CardTitle>Create Account</CardTitle></CardHeader><CardContent><form className="space-y-3" onSubmit={submit}><Input name="name" placeholder="Full Name" required /><Input name="email" type="email" placeholder="Email" required /><Input name="password" type="password" placeholder="Password" minLength={8} required />{err && <p className="text-sm text-rose-400">{err}</p>}{ok && <p className="text-sm text-emerald-400">{ok}</p>}<Button className="w-full">Create Account</Button></form></CardContent></Card></div>;
 }
 
-function UserDashboard() { const [claims, setClaims] = useState<any[]>([]); useEffect(() => { api("/api/claims").then(setClaims); }, []); return <Card><CardHeader><CardTitle>My Claims</CardTitle></CardHeader><CardContent className="space-y-2">{claims.map((c) => <div key={c.Id} className="flex items-center justify-between rounded-md border border-slate-700 bg-slate-900/50 p-3"><Link to={`/app/claims/${c.Id}`} className="text-sky-300">Claim #{c.Id}</Link><Badge variant={statusVariant(c.Status) as any}>{c.Status}</Badge></div>)}</CardContent></Card>; }
 function UserDashboard() {
   const [claims, setClaims] = useState<any[] | null>(null);
   useEffect(() => { api("/api/claims").then(setClaims); }, []);
