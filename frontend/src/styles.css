@@ -1,6 +1,21 @@
-body { font-family: Arial, sans-serif; margin: 0; background: #f3f4f6; }
-nav { background: #111827; padding: 12px; display: flex; gap: 12px; }
-nav a, nav button { color: white; background: transparent; border: 1px solid #374151; padding: 6px 10px; text-decoration: none; cursor: pointer; }
-.panel { background: white; margin: 16px; padding: 16px; border-radius: 6px; }
-.panel input, .panel textarea, .panel button { display: block; margin: 8px 0; padding: 8px; width: 100%; box-sizing: border-box; }
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+body { font-family: Inter, Arial, sans-serif; margin: 0; background: linear-gradient(120deg, #0f172a, #0b4a6f 45%, #0e7490); color: #0f172a; }
+.layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.sidebar { padding: 20px; color: #fff; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); border-right: 1px solid rgba(255,255,255,0.15); }
+.sidebar h3 { margin: 0 0 8px; }
+.menu { display: flex; flex-direction: column; gap: 8px; margin: 18px 0; }
+.menu a, .sidebar button { color: #fff; text-decoration: none; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; padding: 10px; background: rgba(255,255,255,0.08); cursor: pointer; }
+main { padding: 16px; }
+.panel { background: rgba(255,255,255,0.95); margin: 0 0 16px; padding: 16px; border-radius: 8px; box-shadow: 0 10px 30px rgba(2, 6, 23, 0.25); animation: rise .35s ease; }
+.panel input, .panel textarea, .panel button { display: block; margin: 8px 0; padding: 10px; width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #cbd5e1; }
+.panel button { background: #0284c7; color: #fff; border: none; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #eef6ff; border-radius: 8px; padding: 10px; }
+.badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; color: #fff; }
+.PENDING { background: #d97706; }
+.APPROVED { background: #16a34a; }
+.REJECTED { background: #dc2626; }
+.auth-wrap { min-height: 100vh; display: grid; place-items: center; }
+.auth { width: min(460px, 92vw); }
+.err { color: #b91c1c; font-size: 13px; }
+@keyframes rise { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
