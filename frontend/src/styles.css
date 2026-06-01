@@ -1,0 +1,6 @@
+body { font-family: Arial, sans-serif; margin: 0; background: #f3f4f6; }
+nav { background: #111827; padding: 12px; display: flex; gap: 12px; }
+nav a, nav button { color: white; background: transparent; border: 1px solid #374151; padding: 6px 10px; text-decoration: none; cursor: pointer; }
+.panel { background: white; margin: 16px; padding: 16px; border-radius: 6px; }
+.panel input, .panel textarea, .panel button { display: block; margin: 8px 0; padding: 8px; width: 100%; box-sizing: border-box; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
