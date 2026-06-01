@@ -14,6 +14,10 @@ function useSession() {
     if (!getToken()) return setLoading(false);
     api("/api/auth/me")
       .then((u) => setUser({ id: u.Id, name: u.Name, email: u.Email, role: u.Role }))
+      .catch(() => {
+        localStorage.removeItem("token");
+        setUser(null);
+      })
       .finally(() => setLoading(false));
   }, []);
   return { user, setUser, loading };
