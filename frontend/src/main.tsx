@@ -1,6 +1,7 @@
 import React, { FormEvent, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import { API_BASE, api, getToken } from "./services/api";
 import "./styles.css";
 
@@ -152,7 +153,6 @@ function AdminClaims() {
     await api(`/api/admin/claims/${id}/status`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status, adminComment: comments[id] || "" }) });
     await load();
   }
-  return <div className="card"><h2>All Claims</h2><div className="table">{claims.map((c) => <div className="tr-col" key={c.Id}><div className="tr"><span>#{c.Id} {c.UserName}</span><span className={`badge ${c.Status}`}>{c.Status}</span></div><small>{c.PolicyNumber} | {c.ClaimType}</small><input placeholder="Admin comment" value={comments[c.Id] || ""} onChange={(e) => setComments((x) => ({ ...x, [c.Id]: e.target.value }))} /><div className="actions"><Link className="btn small ghost" to={`/app/claims/${c.Id}`}>Open</Link><button className="btn small" onClick={() => update(c.Id, "APPROVED")}>Approve</button><button className="btn small danger" onClick={() => update(c.Id, "REJECTED")}>Reject</button></div></div>)}</div></div>;
   return <div className="card"><h2>All Claims</h2><div className="table">{claims.map((c) => { const closed = c.Status !== "PENDING"; return <div className="tr-col" key={c.Id}><div className="tr"><span>#{c.Id} {c.UserName}</span><span className={`badge ${c.Status}`}>{c.Status}</span></div><small>{c.PolicyNumber} | {c.ClaimType}</small><input placeholder="Admin comment" disabled={closed} value={comments[c.Id] || ""} onChange={(e) => setComments((x) => ({ ...x, [c.Id]: e.target.value }))} /><div className="actions"><Link className="btn small ghost" to={`/app/claims/${c.Id}`}>Open</Link><button className="btn small" disabled={closed} onClick={() => update(c.Id, "APPROVED")}>Approve</button><button className="btn small danger" disabled={closed} onClick={() => update(c.Id, "REJECTED")}>Reject</button></div></div>; })}</div></div>;
 }
 
@@ -174,7 +174,7 @@ function AppShell() {
       <nav className="topnav">
         <h3>Insurance App</h3>
         <div className="navlinks">{links.map((l) => <Link key={l.to} to={l.to}>{l.label}</Link>)}</div>
-        <button className="btn small ghost" onClick={() => { localStorage.removeItem("token"); location.href = "/"; }}>Logout</button>
+        <button className="btn small nav-logout" onClick={() => { localStorage.removeItem("token"); location.href = "/"; }}><LogOut size={14} />Sign out</button>
       </nav>
       <main className="main">
         <Routes>

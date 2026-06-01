@@ -18,11 +18,14 @@ a { color: #0ea5e9; text-decoration: none; }
 .navlinks { display: flex; gap: 10px; }
 .navlinks a { color: #dbeafe; padding: 8px 10px; border-radius: 8px; }
 .navlinks a:hover { background: rgba(255,255,255,.12); transition: .2s; }
+.nav-logout { background: #e11d48; color: #fff; border: none; display: inline-flex; align-items: center; gap: 6px; }
+.nav-logout:hover { background: #be123c; }
 
 .main { max-width: 1080px; margin: 18px auto; padding: 0 16px 20px; }
 .auth-wrap { min-height: 100vh; display: grid; place-items: center; background: linear-gradient(135deg, #0f172a, #155e75); }
 
 .card { background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 12px 28px rgba(15, 23, 42, .12); animation: fade .35s ease; }
+.card h2 { margin-top: 0; }
 .auth { width: min(460px, 92vw); }
 .table { display: flex; flex-direction: column; gap: 8px; }
 .tr { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; }
@@ -57,4 +60,9 @@ textarea { min-height: 120px; resize: vertical; }
 @keyframes fade {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 780px) {
+  .topnav { flex-wrap: wrap; gap: 10px; }
+  .hero-actions { flex-direction: column; align-items: flex-start; }
 }

@@ -29,7 +29,13 @@ Services:
 - Frontend: http://localhost:3000
 - Backend: http://localhost:5000
 - SQL Server: localhost:1433
-- Azurite Blob Emulator: localhost:10000
+
+Before running, create `.env` in project root with:
+
+```env
+AZURE_BLOB_CONTAINER=claims-documents
+AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=insurancedocsnmc;AccountKey=<KEY>;EndpointSuffix=core.windows.net
+```
 
 ## Database Credentials (Local)
 - Host: `localhost`
@@ -38,10 +44,10 @@ Services:
 - Password: `YourStrong!Passw0rd`
 - Database: `insurance_db`
 
-## Blob Credentials (Local Azurite)
-- Account Name: `devstoreaccount1`
+## Blob Configuration (Docker)
 - Container: `claims-documents`
-- Connection string is already set in `docker-compose.yml`.
+- Storage account: `insurancedocsnmc`
+- Connection string from Azure Storage Account access keys
 
 ## API Highlights
 - `POST /api/auth/login`
@@ -97,5 +103,5 @@ Services:
    - Build and deploy frontend and backend containers separately to Azure App Service.
 
 ## Notes
-- For local learning we use Azurite in Docker.
-- For production use real Azure Blob + Managed Identity (no storage keys in app code).
+- This setup uses real Azure Blob Storage in Docker.
+- For App Service production, prefer Managed Identity (no storage keys in app code).

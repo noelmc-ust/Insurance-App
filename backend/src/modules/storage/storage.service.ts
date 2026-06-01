@@ -32,6 +32,9 @@ class StorageService {
         this.sharedCred = new StorageSharedKeyCredential(parsed.accountName, parsed.accountKey);
       }
     } else {
+      if (!env.azure.accountUrl || !env.azure.accountName) {
+        throw new Error("Azure storage is not configured. Set connection string or account URL/name.");
+      }
       const credential = new DefaultAzureCredential();
       this.client = new BlobServiceClient(env.azure.accountUrl, credential);
     }

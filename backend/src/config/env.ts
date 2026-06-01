@@ -13,10 +13,8 @@ export const env = {
     database: process.env.DB_NAME || "insurance_db"
   },
   azure: {
-    accountName: process.env.AZURE_STORAGE_ACCOUNT_NAME || "devstoreaccount1",
-    accountUrl:
-      process.env.AZURE_STORAGE_ACCOUNT_URL ||
-      "http://azurite:10000/devstoreaccount1",
+    accountName: process.env.AZURE_STORAGE_ACCOUNT_NAME || "",
+    accountUrl: process.env.AZURE_STORAGE_ACCOUNT_URL || "",
     container: process.env.AZURE_BLOB_CONTAINER || "claims-documents",
     connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING || ""
   },
