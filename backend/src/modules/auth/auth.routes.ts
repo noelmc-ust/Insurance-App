@@ -26,6 +26,33 @@ router.post("/login", async (req, res) => {
   });
 });
 
+router.post("/register", async (req, res) => {
+  const parsed = z
+    .object({
+      name: z.string().min(2),
+      email: z.string().email(),
+      password: z.string().min(8)
+    })
+    .safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid payload" });
+  const { name, email, password } = parsed.data;
+  const db = await getDb();
+  const exists = await db.request().input("email", email).query("SELECT TOP 1 Id FROM Users WHERE Email=@email");
+  if (exists.recordset[0]) return res.status(409).json({ message: "Email already registered" });
+  const hash = await bcrypt.hash(password, 10);
+  const created = await db
+    .request()
+    .input("name", name)
+    .input("email", email)
+    .input("passwordHash", hash)
+    .query(`
+      INSERT INTO Users (Name, Email, PasswordHash, Role)
+      OUTPUT INSERTED.Id, INSERTED.Name, INSERTED.Email, INSERTED.Role
+      VALUES (@name, @email, @passwordHash, 'USER')
+    `);
+  return res.status(201).json(created.recordset[0]);
+});
+
 router.get("/me", requireAuth, async (req, res) => {
   const db = await getDb();
   const result = await db.request().input("id", req.user!.id).query("SELECT Id, Name, Email, Role, CreatedAt FROM Users WHERE Id=@id");

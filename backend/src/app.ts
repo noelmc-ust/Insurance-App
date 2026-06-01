@@ -13,7 +13,11 @@ async function start() {
   await storageService.ensureContainer();
 
   const app = express();
-  app.use(cors({ origin: env.corsOrigin }));
+  app.use(
+    cors({
+      origin: env.corsOrigin === "*" ? true : env.corsOrigin
+    })
+  );
   app.use(express.json({ limit: "10mb" }));
 
   app.get("/health", (_req, res) => res.json({ ok: true }));

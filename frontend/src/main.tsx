@@ -35,7 +35,31 @@ function Login({ onLogin }: { onLogin: (u: User) => void }) {
       setLoading(false);
     }
   }
-  return <div className="auth-wrap"><form onSubmit={submit} className="panel auth"><h2>Insurance Claims Portal</h2><input name="email" placeholder="Email" defaultValue="user@insurance.local" /><input name="password" placeholder="Password" type="password" defaultValue="User@123" />{error && <p className="err">{error}</p>}<button disabled={loading}>{loading ? "Signing in..." : "Login"}</button><small>Demo users: admin@insurance.local / user@insurance.local</small><p><Link to="/">Back to Home</Link></p></form></div>;
+  return <div className="auth-wrap"><form onSubmit={submit} className="panel auth"><h2>Insurance Claims Portal</h2><input name="email" placeholder="Email" defaultValue="user@insurance.local" /><input name="password" placeholder="Password" type="password" defaultValue="User@123" />{error && <p className="err">{error}</p>}<button disabled={loading}>{loading ? "Signing in..." : "Login"}</button><small>Demo users: admin@insurance.local / user@insurance.local</small><p><Link to="/signup">Create account</Link></p><p><Link to="/">Back to Home</Link></p></form></div>;
+}
+
+function Signup() {
+  const nav = useNavigate();
+  const [error, setError] = useState("");
+  const [ok, setOk] = useState("");
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+    setOk("");
+    const fd = new FormData(e.currentTarget);
+    try {
+      await api("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: fd.get("name"), email: fd.get("email"), password: fd.get("password") })
+      });
+      setOk("Account created. Please login.");
+      setTimeout(() => nav("/login"), 1000);
+    } catch {
+      setError("Signup failed. Email may already exist.");
+    }
+  }
+  return <div className="auth-wrap"><form onSubmit={submit} className="panel auth"><h2>Create Account</h2><input name="name" placeholder="Full Name" required /><input name="email" type="email" placeholder="Email" required /><input name="password" type="password" placeholder="Password (min 8 chars)" minLength={8} required />{error && <p className="err">{error}</p>}{ok && <p className="ok">{ok}</p>}<button>Create Account</button><p><Link to="/login">Back to Login</Link></p></form></div>;
 }
 
 function Landing() {
@@ -115,7 +139,7 @@ function Shell() {
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
-  return <BrowserRouter><Routes><Route path="/" element={getToken() ? <Navigate to="/app" replace /> : <Landing />} /><Route path="/login" element={getToken() ? <Navigate to="/app" replace /> : <Login onLogin={setUser} />} /><Route path="/app/*" element={<Shell key={user?.id || 0} />} /></Routes></BrowserRouter>;
+  return <BrowserRouter><Routes><Route path="/" element={getToken() ? <Navigate to="/app" replace /> : <Landing />} /><Route path="/login" element={getToken() ? <Navigate to="/app" replace /> : <Login onLogin={setUser} />} /><Route path="/signup" element={getToken() ? <Navigate to="/app" replace /> : <Signup />} /><Route path="/app/*" element={<Shell key={user?.id || 0} />} /></Routes></BrowserRouter>;
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(<React.StrictMode><App /></React.StrictMode>);
