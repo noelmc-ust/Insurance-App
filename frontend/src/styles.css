@@ -1,4 +1,4 @@
-body { font-family: Inter, Arial, sans-serif; margin: 0; background: linear-gradient(120deg, #0f172a, #0b4a6f 45%, #0e7490); color: #0f172a; }
+body { font-family: Inter, Arial, sans-serif; margin: 0; background: linear-gradient(120deg, #0b1020, #0f4c81 46%, #0a7a7a); color: #0f172a; }
 .layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
 .sidebar { padding: 20px; color: #fff; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); border-right: 1px solid rgba(255,255,255,0.15); }
 .sidebar h3 { margin: 0 0 8px; }
@@ -18,4 +18,12 @@ main { padding: 16px; }
 .auth-wrap { min-height: 100vh; display: grid; place-items: center; }
 .auth { width: min(460px, 92vw); }
 .err { color: #b91c1c; font-size: 13px; }
+.landing { min-height: 100vh; color: #e2e8f0; padding: 32px; }
+.hero { min-height: 72vh; display: grid; align-items: center; }
+.hero h1 { font-size: clamp(36px, 5vw, 56px); margin: 0; letter-spacing: 0; }
+.hero p { max-width: 760px; font-size: 18px; color: #bfdbfe; }
+.cta { margin-top: 20px; }
+.btn-primary { display: inline-block; background: #22d3ee; color: #082f49; font-weight: 700; border-radius: 10px; padding: 12px 18px; text-decoration: none; }
+.features { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 14px; margin-top: 12px; }
+.feature { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 14px; border-radius: 8px; backdrop-filter: blur(4px); }
 @keyframes rise { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

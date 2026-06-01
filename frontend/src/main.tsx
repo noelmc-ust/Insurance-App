@@ -35,7 +35,28 @@ function Login({ onLogin }: { onLogin: (u: User) => void }) {
       setLoading(false);
     }
   }
-  return <div className="auth-wrap"><form onSubmit={submit} className="panel auth"><h2>Insurance Claims Portal</h2><input name="email" placeholder="Email" defaultValue="user@insurance.local" /><input name="password" placeholder="Password" type="password" defaultValue="User@123" />{error && <p className="err">{error}</p>}<button disabled={loading}>{loading ? "Signing in..." : "Login"}</button><small>Demo users: admin@insurance.local / user@insurance.local</small></form></div>;
+  return <div className="auth-wrap"><form onSubmit={submit} className="panel auth"><h2>Insurance Claims Portal</h2><input name="email" placeholder="Email" defaultValue="user@insurance.local" /><input name="password" placeholder="Password" type="password" defaultValue="User@123" />{error && <p className="err">{error}</p>}<button disabled={loading}>{loading ? "Signing in..." : "Login"}</button><small>Demo users: admin@insurance.local / user@insurance.local</small><p><Link to="/">Back to Home</Link></p></form></div>;
+}
+
+function Landing() {
+  return (
+    <div className="landing">
+      <header className="hero">
+        <div>
+          <h1>Insurance Claims Platform</h1>
+          <p>Azure Blob Storage training app with secure uploads, private documents, and role-based claim workflow.</p>
+          <div className="cta">
+            <Link to="/login" className="btn-primary">Login</Link>
+          </div>
+        </div>
+      </header>
+      <section className="features">
+        <article className="feature"><h3>Secure Uploads</h3><p>Files are stored in private blob container paths per user and claim.</p></article>
+        <article className="feature"><h3>SAS Viewing</h3><p>Documents are viewed in browser through temporary read-only SAS URLs.</p></article>
+        <article className="feature"><h3>Admin Control</h3><p>Approve/reject claims with status tracking and comments.</p></article>
+      </section>
+    </div>
+  );
 }
 
 function UserHome() {
@@ -94,7 +115,7 @@ function Shell() {
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
-  return <BrowserRouter><Routes><Route path="/login" element={<Login onLogin={setUser} />} /><Route path="/*" element={<Shell key={user?.id || 0} />} /></Routes></BrowserRouter>;
+  return <BrowserRouter><Routes><Route path="/" element={getToken() ? <Navigate to="/app" replace /> : <Landing />} /><Route path="/login" element={getToken() ? <Navigate to="/app" replace /> : <Login onLogin={setUser} />} /><Route path="/app/*" element={<Shell key={user?.id || 0} />} /></Routes></BrowserRouter>;
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(<React.StrictMode><App /></React.StrictMode>);
