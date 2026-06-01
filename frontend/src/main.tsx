@@ -1,6 +1,6 @@
-import React, { FormEvent, useEffect, useMemo, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { API_BASE, api, getToken } from "./services/api";
 import "./styles.css";
 
@@ -8,138 +8,192 @@ type User = { id: number; name: string; email: string; role: "ADMIN" | "USER" };
 
 function useSession() {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
-    if (!getToken()) return;
-    api("/api/auth/me").then((u) => setUser({ id: u.Id, name: u.Name, email: u.Email, role: u.Role })).catch(() => localStorage.removeItem("token"));
+    if (!getToken()) return setLoading(false);
+    api("/api/auth/me")
+      .then((u) => setUser({ id: u.Id, name: u.Name, email: u.Email, role: u.Role }))
+      .finally(() => setLoading(false));
   }, []);
-  return { user, setUser };
-}
-
-function Login({ onLogin }: { onLogin: (u: User) => void }) {
-  const nav = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    const fd = new FormData(e.currentTarget);
-    try {
-      const res = await api("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: fd.get("email"), password: fd.get("password") }) });
-      localStorage.setItem("token", res.token);
-      onLogin(res.user);
-      nav("/");
-    } catch {
-      setError("Login failed. Check backend is running and credentials are correct.");
-    } finally {
-      setLoading(false);
-    }
-  }
-  return <div className="auth-wrap"><form onSubmit={submit} className="panel auth"><h2>Insurance Claims Portal</h2><input name="email" placeholder="Email" defaultValue="user@insurance.local" /><input name="password" placeholder="Password" type="password" defaultValue="User@123" />{error && <p className="err">{error}</p>}<button disabled={loading}>{loading ? "Signing in..." : "Login"}</button><small>Demo users: admin@insurance.local / user@insurance.local</small><p><Link to="/signup">Create account</Link></p><p><Link to="/">Back to Home</Link></p></form></div>;
-}
-
-function Signup() {
-  const nav = useNavigate();
-  const [error, setError] = useState("");
-  const [ok, setOk] = useState("");
-  async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError("");
-    setOk("");
-    const fd = new FormData(e.currentTarget);
-    try {
-      await api("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: fd.get("name"), email: fd.get("email"), password: fd.get("password") })
-      });
-      setOk("Account created. Please login.");
-      setTimeout(() => nav("/login"), 1000);
-    } catch {
-      setError("Signup failed. Email may already exist.");
-    }
-  }
-  return <div className="auth-wrap"><form onSubmit={submit} className="panel auth"><h2>Create Account</h2><input name="name" placeholder="Full Name" required /><input name="email" type="email" placeholder="Email" required /><input name="password" type="password" placeholder="Password (min 8 chars)" minLength={8} required />{error && <p className="err">{error}</p>}{ok && <p className="ok">{ok}</p>}<button>Create Account</button><p><Link to="/login">Back to Login</Link></p></form></div>;
+  return { user, setUser, loading };
 }
 
 function Landing() {
   return (
     <div className="landing">
       <header className="hero">
-        <div>
-          <h1>Insurance Claims Platform</h1>
-          <p>Azure Blob Storage training app with secure uploads, private documents, and role-based claim workflow.</p>
-          <div className="cta">
-            <Link to="/login" className="btn-primary">Login</Link>
-          </div>
+        <h1>Insurance Claims Platform</h1>
+        <p>Secure claims workflow with Azure Blob document storage, private access, and role-based operations.</p>
+        <div className="hero-actions">
+          <Link to="/login" className="btn">Login</Link>
+          <Link to="/signup" className="btn ghost">Create Account</Link>
         </div>
       </header>
-      <section className="features">
-        <article className="feature"><h3>Secure Uploads</h3><p>Files are stored in private blob container paths per user and claim.</p></article>
-        <article className="feature"><h3>SAS Viewing</h3><p>Documents are viewed in browser through temporary read-only SAS URLs.</p></article>
-        <article className="feature"><h3>Admin Control</h3><p>Approve/reject claims with status tracking and comments.</p></article>
-      </section>
     </div>
   );
 }
 
-function UserHome() {
+function Login({ onLogin }: { onLogin: (u: User) => void }) {
+  const nav = useNavigate();
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    const fd = new FormData(e.currentTarget);
+    try {
+      const res = await api("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: fd.get("email"), password: fd.get("password") })
+      });
+      localStorage.setItem("token", res.token);
+      onLogin(res.user);
+      nav("/app");
+    } catch {
+      setError("Login failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="auth-wrap">
+      <form onSubmit={submit} className="card auth">
+        <h2>Login</h2>
+        <input name="email" placeholder="Email" required />
+        <input name="password" type="password" placeholder="Password" required />
+        {error && <p className="err">{error}</p>}
+        <button className="btn full" disabled={busy}>{busy ? "Signing in..." : "Sign In"}</button>
+        <p><Link to="/signup">Create account</Link></p>
+      </form>
+    </div>
+  );
+}
+
+function Signup() {
+  const nav = useNavigate();
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    setMsg("");
+    setErr("");
+    try {
+      await api("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: fd.get("name"), email: fd.get("email"), password: fd.get("password") })
+      });
+      setMsg("Account created. Redirecting to login...");
+      setTimeout(() => nav("/login"), 900);
+    } catch {
+      setErr("Signup failed.");
+    }
+  }
+  return <div className="auth-wrap"><form onSubmit={submit} className="card auth"><h2>Create Account</h2><input name="name" placeholder="Full Name" required /><input name="email" type="email" placeholder="Email" required /><input name="password" type="password" placeholder="Password" minLength={8} required />{err && <p className="err">{err}</p>}{msg && <p className="ok">{msg}</p>}<button className="btn full">Create</button></form></div>;
+}
+
+function UserDashboard() {
   const [claims, setClaims] = useState<any[]>([]);
   useEffect(() => { api("/api/claims").then(setClaims); }, []);
-  return <div className="panel"><h2>My Claims</h2><div className="list">{claims.map((c) => <p className="row" key={c.Id}><Link to={`/claims/${c.Id}`}>Claim #{c.Id}</Link> <span className={`badge ${c.Status}`}>{c.Status}</span></p>)}</div></div>;
+  return <div className="card"><h2>My Claims</h2><div className="table">{claims.map((c) => <div className="tr" key={c.Id}><Link to={`/app/claims/${c.Id}`}>Claim #{c.Id}</Link><span className={`badge ${c.Status}`}>{c.Status}</span></div>)}</div></div>;
 }
 
 function ClaimCreate() {
   const nav = useNavigate();
+  const [busy, setBusy] = useState(false);
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setBusy(true);
     const fd = new FormData(e.currentTarget);
-    await fetch(`${API_BASE}/api/claims`, { method: "POST", headers: { Authorization: `Bearer ${getToken()}` }, body: fd });
-    nav("/");
+    try {
+      await fetch(`${API_BASE}/api/claims`, { method: "POST", headers: { Authorization: `Bearer ${getToken()}` }, body: fd });
+      nav("/app");
+    } finally {
+      setBusy(false);
+    }
   }
-  return <form onSubmit={submit} className="panel"><h2>Create Claim</h2><input name="fullName" placeholder="Full Name" required /><input name="policyNumber" placeholder="Policy Number" required /><input name="claimType" placeholder="Claim Type" required /><input name="claimAmount" type="number" step="0.01" placeholder="Claim Amount" required /><textarea name="description" placeholder="Description" required /><input name="documents" type="file" multiple /><button>Submit Claim</button></form>;
+  return <form className="card form-grid" onSubmit={submit}><h2>New Claim</h2><input name="fullName" placeholder="Full Name" required /><input name="policyNumber" placeholder="Policy Number" required /><input name="claimType" placeholder="Claim Type" required /><input name="claimAmount" type="number" step="0.01" placeholder="Claim Amount" required /><textarea name="description" placeholder="Description" required /><input name="documents" type="file" multiple /><button className="btn" disabled={busy}>{busy ? "Submitting..." : "Submit Claim"}</button></form>;
 }
 
 function ClaimDetails() {
-  const id = window.location.pathname.split("/").pop();
+  const { id } = useParams();
   const [data, setData] = useState<any>(null);
   useEffect(() => { api(`/api/claims/${id}`).then(setData); }, [id]);
   async function openDoc(docId: number) {
     const r = await api(`/api/documents/${docId}/view-url`);
     window.open(r.url, "_blank");
   }
-  if (!data) return <div className="panel">Loading...</div>;
-  return <div className="panel"><h2>Claim #{data.claim.Id}</h2><p>Status: <span className={`badge ${data.claim.Status}`}>{data.claim.Status}</span></p><p>Admin Comment: {data.claim.AdminComment || "-"}</p><h3>Documents</h3><div className="list">{data.documents.map((d: any) => <p className="row" key={d.Id}><span>{d.FileName}</span><button onClick={() => openDoc(d.Id)}>Open</button></p>)}</div></div>;
+  if (!data) return <div className="card">Loading...</div>;
+  return <div className="card"><h2>Claim #{data.claim.Id}</h2><p>Status: <span className={`badge ${data.claim.Status}`}>{data.claim.Status}</span></p><p>Admin Comment: {data.claim.AdminComment || "-"}</p><h3>Documents</h3><div className="table">{data.documents.map((d: any) => <div className="tr" key={d.Id}><span>{d.FileName}</span><button className="btn small" onClick={() => openDoc(d.Id)}>Open</button></div>)}</div></div>;
 }
 
-function AdminHome() {
+function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
-  const [users, setUsers] = useState<any[]>([]);
-  const [claims, setClaims] = useState<any[]>([]);
-  useEffect(() => { api("/api/admin/stats").then(setStats); api("/api/admin/users").then(setUsers); api("/api/admin/claims?status=ALL").then(setClaims); }, []);
-  async function updateStatus(id: number, status: string) {
-    await api(`/api/admin/claims/${id}/status`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status, adminComment: `Updated to ${status}` }) });
-    setClaims(await api("/api/admin/claims?status=ALL"));
-  }
-  if (!stats) return <div className="panel">Loading...</div>;
-  return <div className="grid">
-    <div className="panel"><h2>Stats</h2><p>Total Claims: {stats.totalClaims}</p><p>Pending: {stats.pendingClaims}</p><p>Approved: {stats.approvedClaims}</p><p>Rejected: {stats.rejectedClaims}</p><p>Total Users: {stats.totalUsers}</p></div>
-    <div className="panel"><h2>Users</h2><div className="list">{users.map((u) => <p className="row" key={u.Id}><span>{u.Name} ({u.Role})</span><span>Claims: {u.ClaimsCount}</span></p>)}</div></div>
-    <div className="panel"><h2>Claims</h2><div className="list">{claims.map((c) => <p className="row" key={c.Id}><span>#{c.Id} {c.UserName} <span className={`badge ${c.Status}`}>{c.Status}</span></span><span><button onClick={() => updateStatus(c.Id, "APPROVED")}>Approve</button> <button onClick={() => updateStatus(c.Id, "REJECTED")}>Reject</button> <Link to={`/claims/${c.Id}`}>Open</Link></span></p>)}</div></div>
-  </div>;
+  useEffect(() => { api("/api/admin/stats").then(setStats); }, []);
+  if (!stats) return <div className="card">Loading...</div>;
+  return <div className="stats">{Object.entries(stats).map(([k, v]) => <div className="stat" key={k}><p>{k}</p><h2>{String(v)}</h2></div>)}</div>;
 }
 
-function Shell() {
-  const { user, setUser } = useSession();
-  const logout = () => { localStorage.removeItem("token"); location.href = "/"; };
-  const links = useMemo(() => user?.role === "ADMIN" ? [{ to: "/", label: "Admin" }] : [{ to: "/", label: "Dashboard" }, { to: "/new-claim", label: "New Claim" }], [user]);
-  if (!getToken()) return <Navigate to="/login" replace />;
-  return <div className="layout"><aside className="sidebar"><h3>Insurance App</h3><p>{user?.name}</p><div className="menu">{links.map((l) => <Link key={l.to} to={l.to}>{l.label}</Link>)}</div><button onClick={logout}>Logout</button></aside><main><Routes><Route path="/" element={user?.role === "ADMIN" ? <AdminHome /> : <UserHome />} /><Route path="/new-claim" element={<ClaimCreate />} /><Route path="/claims/:id" element={<ClaimDetails />} /></Routes></main></div>;
+function AdminClaims() {
+  const [claims, setClaims] = useState<any[]>([]);
+  const [comments, setComments] = useState<Record<number, string>>({});
+  async function load() { setClaims(await api("/api/admin/claims?status=ALL")); }
+  useEffect(() => { load(); }, []);
+  async function update(id: number, status: "APPROVED" | "REJECTED") {
+    await api(`/api/admin/claims/${id}/status`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status, adminComment: comments[id] || "" }) });
+    await load();
+  }
+  return <div className="card"><h2>All Claims</h2><div className="table">{claims.map((c) => <div className="tr-col" key={c.Id}><div className="tr"><span>#{c.Id} {c.UserName}</span><span className={`badge ${c.Status}`}>{c.Status}</span></div><small>{c.PolicyNumber} | {c.ClaimType}</small><input placeholder="Admin comment" value={comments[c.Id] || ""} onChange={(e) => setComments((x) => ({ ...x, [c.Id]: e.target.value }))} /><div className="actions"><Link className="btn small ghost" to={`/app/claims/${c.Id}`}>Open</Link><button className="btn small" onClick={() => update(c.Id, "APPROVED")}>Approve</button><button className="btn small danger" onClick={() => update(c.Id, "REJECTED")}>Reject</button></div></div>)}</div></div>;
+}
+
+function AdminUsers() {
+  const [users, setUsers] = useState<any[]>([]);
+  useEffect(() => { api("/api/admin/users").then(setUsers); }, []);
+  return <div className="card"><h2>Platform Users</h2><div className="table">{users.map((u) => <div className="tr" key={u.Id}><span>{u.Name} ({u.Role}) - {u.Email}<br /><small>Created: {new Date(u.CreatedAt).toLocaleString()}</small></span><span>Claims: {u.ClaimsCount}</span></div>)}</div></div>;
+}
+
+function AppShell() {
+  const { user, loading } = useSession();
+  if (loading) return <div className="auth-wrap">Loading...</div>;
+  if (!getToken() || !user) return <Navigate to="/login" replace />;
+  const links = user.role === "ADMIN"
+    ? [{ to: "/app", label: "Dashboard" }, { to: "/app/admin/claims", label: "Claims" }, { to: "/app/admin/users", label: "Users" }]
+    : [{ to: "/app", label: "Dashboard" }, { to: "/app/new-claim", label: "New Claim" }];
+  return (
+    <div>
+      <nav className="topnav">
+        <h3>Insurance App</h3>
+        <div className="navlinks">{links.map((l) => <Link key={l.to} to={l.to}>{l.label}</Link>)}</div>
+        <button className="btn small ghost" onClick={() => { localStorage.removeItem("token"); location.href = "/"; }}>Logout</button>
+      </nav>
+      <main className="main">
+        <Routes>
+          <Route path="/" element={user.role === "ADMIN" ? <AdminDashboard /> : <UserDashboard />} />
+          <Route path="/new-claim" element={<ClaimCreate />} />
+          <Route path="/claims/:id" element={<ClaimDetails />} />
+          <Route path="/admin/claims" element={<AdminClaims />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+        </Routes>
+      </main>
+    </div>
+  );
 }
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
-  return <BrowserRouter><Routes><Route path="/" element={getToken() ? <Navigate to="/app" replace /> : <Landing />} /><Route path="/login" element={getToken() ? <Navigate to="/app" replace /> : <Login onLogin={setUser} />} /><Route path="/signup" element={getToken() ? <Navigate to="/app" replace /> : <Signup />} /><Route path="/app/*" element={<Shell key={user?.id || 0} />} /></Routes></BrowserRouter>;
+  const [sessionUser, setSessionUser] = useState<User | null>(null);
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={getToken() ? <Navigate to="/app" replace /> : <Landing />} />
+        <Route path="/login" element={getToken() ? <Navigate to="/app" replace /> : <Login onLogin={setSessionUser} />} />
+        <Route path="/signup" element={getToken() ? <Navigate to="/app" replace /> : <Signup />} />
+        <Route path="/app/*" element={<AppShell key={sessionUser?.id || 0} />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(<React.StrictMode><App /></React.StrictMode>);

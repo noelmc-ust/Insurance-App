@@ -1,9 +1,5 @@
 const configured = import.meta.env.VITE_API_BASE;
-const runtimeDefault =
-  typeof window !== "undefined"
-    ? `${window.location.protocol}//${window.location.hostname}:5000`
-    : "http://localhost:5000";
-export const API_BASE = configured || runtimeDefault;
+export const API_BASE = configured || "";
 
 export function getToken() {
   return localStorage.getItem("token") || "";

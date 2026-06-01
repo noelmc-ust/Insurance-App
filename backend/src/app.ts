@@ -18,6 +18,16 @@ async function start() {
       origin: env.corsOrigin === "*" ? true : env.corsOrigin
     })
   );
+  app.use((req, res, next) => {
+    const start = Date.now();
+    res.on("finish", () => {
+      const ms = Date.now() - start;
+      console.log(
+        `${new Date().toISOString()} ${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms`
+      );
+    });
+    next();
+  });
   app.use(express.json({ limit: "10mb" }));
 
   app.get("/health", (_req, res) => res.json({ ok: true }));
