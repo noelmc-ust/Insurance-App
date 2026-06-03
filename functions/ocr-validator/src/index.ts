@@ -40,7 +40,7 @@ function scoreText(text: string) {
   return hits.length / KEYWORDS.length;
 }
 
-async function updateDocumentStatus(documentId: number, status: string, score: number, note: string) {
+async function updateDocumentStatus(documentId: number, status: string, score: number, note: string, blobPath?: string) {
   const config = {
     user: process.env.DB_USER || "",
     password: process.env.DB_PASSWORD || "",
@@ -55,16 +55,22 @@ async function updateDocumentStatus(documentId: number, status: string, score: n
   }
 
   const pool = await sql.connect(config as any);
-  await pool.request()
+  const request = pool.request()
     .input("documentId", documentId)
     .input("status", status)
     .input("score", score)
-    .input("note", note)
-    .query(`
+    .input("note", note);
+
+  if (typeof blobPath === "string") {
+    request.input("blobPath", blobPath);
+  }
+
+  await request.query(`
       UPDATE Documents
       SET ValidationStatus=@status,
           ValidationScore=@score,
           ValidationNotes=@note
+          ${typeof blobPath === "string" ? ", BlobPath=@blobPath" : ""}
       WHERE Id=@documentId
     `);
   await pool.close();
@@ -118,7 +124,7 @@ export async function documentValidationQueueTrigger(
       const finalBlobPath = payload.blobPath.replace(/^temp\//, "");
       await finalContainer.getBlockBlobClient(finalBlobPath).uploadData(await blobClient.downloadToBuffer());
       await tempContainer.getBlockBlobClient(payload.blobPath).deleteIfExists();
-      await updateDocumentStatus(payload.documentId, "VALIDATED", score, `OCR validation passed (${Math.round(score * 100)}%)`);
+      await updateDocumentStatus(payload.documentId, "VALIDATED", score, `OCR validation passed (${Math.round(score * 100)}%)`, finalBlobPath);
       await notifyUser(payload.email, "Document validation passed", `Your document ${payload.fileName} passed validation and is now stored.`);
       context.log(`Document ${payload.documentId} validated and stored.`);
     } else {

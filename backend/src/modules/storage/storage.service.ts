@@ -24,6 +24,10 @@ class StorageService {
   private client: BlobServiceClient;
   private sharedCred: StorageSharedKeyCredential | null = null;
 
+  private getContainerNameForBlob(blobPath: string) {
+    return blobPath.startsWith("temp/") ? env.azure.tempContainer : env.azure.container;
+  }
+
   constructor() {
     const hasPlaceholder = (v: string) => /<[^>]+>/.test(v);
 
@@ -80,7 +84,8 @@ class StorageService {
   }
 
   async getReadUrl(blobPath: string, expiresMinutes = 5) {
-    const container = this.client.getContainerClient(env.azure.container);
+    const containerName = this.getContainerNameForBlob(blobPath);
+    const container = this.client.getContainerClient(containerName);
     const blobClient = container.getBlobClient(blobPath);
 
     if (this.sharedCred) {
@@ -88,7 +93,7 @@ class StorageService {
       const expiresOn = new Date(Date.now() + expiresMinutes * 60 * 1000);
       const sas = generateBlobSASQueryParameters(
         {
-          containerName: env.azure.container,
+          containerName,
           blobName: blobPath,
           startsOn,
           expiresOn,
@@ -107,7 +112,7 @@ class StorageService {
     );
     const sas = generateBlobSASQueryParameters(
       {
-        containerName: env.azure.container,
+        containerName,
         blobName: blobPath,
         permissions: BlobSASPermissions.parse("r"),
         startsOn: new Date(Date.now() - 5 * 60 * 1000),
@@ -122,7 +127,8 @@ class StorageService {
   }
 
   async download(blobPath: string) {
-    const container = this.client.getContainerClient(env.azure.container);
+    const containerName = this.getContainerNameForBlob(blobPath);
+    const container = this.client.getContainerClient(containerName);
     const blobClient = container.getBlobClient(blobPath);
     return blobClient.download();
   }
