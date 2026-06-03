@@ -18,6 +18,7 @@ export const env = {
     container: process.env.AZURE_BLOB_CONTAINER || "claims-documents",
     tempContainer: process.env.AZURE_TEMP_BLOB_CONTAINER || "claims-validation-temp",
     connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING || "",
+    serviceBusConnectionString: process.env.AZURE_SERVICEBUS_CONNECTION_STRING || "",
     serviceBusNamespace: process.env.AZURE_SERVICEBUS_NAMESPACE || "",
     validationQueueName: process.env.AZURE_SERVICEBUS_VALIDATION_QUEUE || "document-validation",
     notificationQueueName: process.env.AZURE_SERVICEBUS_NOTIFICATION_QUEUE || "document-notifications",
