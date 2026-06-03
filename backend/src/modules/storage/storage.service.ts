@@ -49,19 +49,34 @@ class StorageService {
     }
   }
 
-  async ensureContainer() {
-    const container = this.client.getContainerClient(env.azure.container);
+  async ensureContainer(containerName = env.azure.container) {
+    const container = this.client.getContainerClient(containerName);
     await container.createIfNotExists();
   }
 
-  async upload(buffer: Buffer, blobPath: string, contentType: string) {
-    const container = this.client.getContainerClient(env.azure.container);
+  async upload(buffer: Buffer, blobPath: string, contentType: string, containerName = env.azure.container) {
+    const container = this.client.getContainerClient(containerName);
     const blockBlob = container.getBlockBlobClient(blobPath);
     await blockBlob.uploadData(buffer, {
       blobHTTPHeaders: {
         blobContentType: contentType
       }
     });
+  }
+
+  async uploadToContainer(buffer: Buffer, blobPath: string, contentType: string, containerName: string) {
+    return this.upload(buffer, blobPath, contentType, containerName);
+  }
+
+  async copyBlob(sourceContainer: string, sourcePath: string, destinationContainer: string, destinationPath: string) {
+    const source = this.client.getContainerClient(sourceContainer).getBlockBlobClient(sourcePath);
+    const destination = this.client.getContainerClient(destinationContainer).getBlockBlobClient(destinationPath);
+    await destination.beginCopyFromURL(source.url);
+  }
+
+  async deleteBlob(containerName: string, blobPath: string) {
+    const container = this.client.getContainerClient(containerName);
+    await container.getBlockBlobClient(blobPath).deleteIfExists();
   }
 
   async getReadUrl(blobPath: string, expiresMinutes = 5) {

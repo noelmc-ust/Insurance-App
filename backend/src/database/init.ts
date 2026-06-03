@@ -37,6 +37,9 @@ export async function initDb() {
       BlobPath NVARCHAR(500) NOT NULL,
       ContentType NVARCHAR(120) NOT NULL,
       FileSize BIGINT NOT NULL,
+      ValidationStatus NVARCHAR(30) NOT NULL DEFAULT 'PENDING_VALIDATION',
+      ValidationScore FLOAT NULL,
+      ValidationNotes NVARCHAR(500) NULL,
       UploadedAt DATETIME2 DEFAULT SYSUTCDATETIME()
     );
   `);

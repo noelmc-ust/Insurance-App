@@ -1,0 +1,19 @@
+# Copy this file to terraform.tfvars and replace placeholders before applying Azure App Service infrastructure.
+
+name         = "insurance"
+location     = "westus2"
+sql_admin_login = "noelad"
+sql_admin_password = "Insurancedb@123"
+sql_database_name = "insurance_db"
+
+backend_image_name  = "ghcr.io/your-org/insurance-app-backend:latest"
+frontend_image_name = "ghcr.io/your-org/insurance-app-frontend:latest"
+cors_origin         = "https://your-domain.example"
+frontend_api_base   = "https://your-domain.example/api"
+
+# Set this to your real Service Bus namespace host (for example: myns.servicebus.windows.net).
+azure_servicebus_namespace = ""
+
+# OCR.space key you received.
+ocr_api_key = "K84743447488957"
+ocr_api_url = "https://api.ocr.space/parse/image"

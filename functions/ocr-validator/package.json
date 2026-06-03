@@ -1,0 +1,21 @@
+{
+  "name": "ocr-validator-function",
+  "version": "1.0.0",
+  "description": "Azure Function for OCR-driven document validation and notifications",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "main": "dist/src/index.js",
+  "dependencies": {
+    "@azure/functions": "^4.0.0",
+    "@azure/identity": "^4.5.0",
+    "@azure/service-bus": "^7.9.5",
+    "@azure/storage-blob": "^12.24.0",
+    "mssql": "^11.0.1"
+  },
+  "devDependencies": {
+    "@types/mssql": "^9.1.7",
+    "@types/node": "^22.10.1",
+    "typescript": "^5.7.2"
+  }
+}

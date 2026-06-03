@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireAuth } from "../../middleware/auth.js";
 import { getDb } from "../../database/db.js";
 import { storageService } from "../storage/storage.service.js";
+import { validationQueueService } from "../validation/validation.service.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -60,21 +61,35 @@ router.post("/", requireAuth, upload.array("documents"), async (req, res) => {
   const claimId = claimResult.recordset[0].Id as number;
   for (const file of files) {
     const safeName = `${Date.now()}-${file.originalname.replace(/\s+/g, "_")}`;
-    const blobPath = `claims/user-${req.user!.id}/claim-${claimId}/${safeName}`;
-    await storageService.upload(file.buffer, blobPath, file.mimetype || "application/octet-stream");
-    await db
+    const tempBlobPath = `temp/claims/user-${req.user!.id}/claim-${claimId}/${safeName}`;
+    await storageService.uploadToContainer(file.buffer, tempBlobPath, file.mimetype || "application/octet-stream", "claims-validation-temp");
+
+    const insertResult = await db
       .request()
       .input("claimId", claimId)
       .input("fileName", file.originalname)
-      .input("blobPath", blobPath)
+      .input("blobPath", tempBlobPath)
       .input("contentType", file.mimetype || "application/octet-stream")
       .input("fileSize", file.size)
       .query(`
-        INSERT INTO Documents (ClaimId, FileName, BlobPath, ContentType, FileSize)
-        VALUES (@claimId, @fileName, @blobPath, @contentType, @fileSize)
+        INSERT INTO Documents (ClaimId, FileName, BlobPath, ContentType, FileSize, ValidationStatus, ValidationNotes)
+        OUTPUT INSERTED.Id
+        VALUES (@claimId, @fileName, @blobPath, @contentType, @fileSize, 'PENDING_VALIDATION', 'Queued for OCR validation')
       `);
+
+    const documentId = insertResult.recordset[0].Id as number;
+    await validationQueueService.enqueueDocumentValidation({
+      claimId,
+      documentId,
+      userId: req.user!.id,
+      email: req.user!.email,
+      blobPath: tempBlobPath,
+      fileName: file.originalname,
+      contentType: file.mimetype || "application/octet-stream",
+      fileSize: file.size
+    });
   }
-  return res.status(201).json({ id: claimId });
+  return res.status(202).json({ id: claimId, status: "PENDING_VALIDATION" });
 });
 
 export default router;

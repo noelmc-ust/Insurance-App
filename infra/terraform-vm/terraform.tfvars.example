@@ -1,0 +1,22 @@
+# Copy this file to terraform.tfvars and replace the placeholders.
+
+name                = "insurance-vm"
+location            = "westus2"
+vm_name             = "insurance-docker-vm"
+admin_username      = "azureuser"
+admin_ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQ... your-public-key-here"
+repo_url            = "https://github.com/your-org/insurance.git"
+
+# Azure storage values used by the backend when running in the VM.
+azure_storage_connection_string = "DefaultEndpointsProtocol=https;AccountName=<storage-account>;AccountKey=<key>;EndpointSuffix=core.windows.net"
+azure_blob_container            = "claims-documents"
+azure_temp_blob_container       = "claims-validation-temp"
+
+# Optional validation queue settings.
+azure_servicebus_namespace          = "<namespace>.servicebus.windows.net"
+azure_servicebus_validation_queue   = "document-validation"
+azure_servicebus_notification_queue = "document-notifications"
+
+# Your OCR.space key from the email you shared.
+ocr_api_key = "K84743447488957"
+ocr_api_url = "https://api.ocr.space/parse/image"
